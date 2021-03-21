@@ -10,7 +10,10 @@ async function health_check(common_name: string, host: HostString, endpoint_reco
         const start = Date.now()
         let res
         try{
-            res = await Promise.race([fetch(`http://${endpoint_record.host}/ack/${random_text}`, {signal: abort_controller.signal}), async_sleep(5000)])  // if endpoint takes more than 5 secs to respond, deem dead
+            res = await Promise.race([
+                fetch(`http://${endpoint_record.host}/ack/${random_text}`, {signal: abort_controller.signal}), 
+                async_sleep(5000)  // if endpoint takes more than 5 secs to respond, deem dead
+            ])
         }
         catch(e) {
             res = undefined
