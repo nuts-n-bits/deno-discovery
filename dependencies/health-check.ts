@@ -1,8 +1,11 @@
 import { memory } from "../routed-apps/app-register.ts"
 import { async_sleep } from "./lib-compat.ts"
-import { SingleRecord, HostString } from "./endpoint-record.ts"
+import { SingleRecord } from "./endpoint-record.ts"
+import { on_cooldown } from "./cooldown.ts"
 
-async function health_check(common_name: string, host: HostString, endpoint_record: SingleRecord) {
+export async function health_check(
+    common_name: string, endpoint_record: SingleRecord
+): Promise<{alive: true, start: number, end: number}|{alive: false, start: number}> {
     if(endpoint_record.protocol === "http") {
         // console.log(`Starting health check for endpoint ((${common_name})) at ((${host}))...`)
         const random_text = Math.random().toString()
@@ -20,21 +23,18 @@ async function health_check(common_name: string, host: HostString, endpoint_reco
         }
         const end = Date.now()
         if(res !== undefined && res.status === 200 && res.headers.get("x-endpoint-common-name") === common_name) {
-            endpoint_record.health.alive = true
-            endpoint_record.health.ack_latency = end - start
-            endpoint_record.health.last_checked = start
-            endpoint_record.health.last_healthy = end
+            return { alive: true, start, end }
             // console.log("    ... And its healthy")
         }
         else {
-            endpoint_record.health.alive = false
-            endpoint_record.health.last_checked = start
             if(res === undefined) { abort_controller.abort() }  // if endpoint takes more than 5 secs to respond, kill the connection
+            return { alive: false, start }
             // console.log("    ... And its dead")
         }
     }
     else {
         console.log("Cannot health check incompatible protocol")
+        return { alive: false, start: Date.now() }
     }
 }
 
@@ -42,7 +42,18 @@ export async function check_all_serial() {
 
     for(const [common_name, endpoint_record] of memory.entries()) {
         for(const [host, single_record] of endpoint_record.entries()) {
-            await health_check(common_name, host, single_record)
+            const report = await health_check(common_name, single_record)
+            if (on_cooldown(single_record.host) === "wait") { return }
+            if (report.alive === true) {
+                single_record.health.alive = true
+                single_record.health.ack_latency = report.end - report.start
+                single_record.health.last_checked = report.start
+                single_record.health.last_healthy = report.end
+            }
+            else {
+                single_record.health.alive = false
+                single_record.health.last_checked = report.start
+            }
         }
     }
 

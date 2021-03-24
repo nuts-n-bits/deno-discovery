@@ -42,7 +42,7 @@ export function app_discover(req: ServerRequest, pu: ParsedUrl): Response {
     return { status: 404 }
 }
 
-export function single_record_serialize(common_name: string, single_record: SingleRecord) {
+export function single_record_serialize(common_name: string, single_record: SingleRecord, space?: number) {
     const encoder = new TextEncoder()
     // must spell out every field because this json will interface with other serivces!
     // so it should have relatively fixed shapes regardless of internal data representation.
