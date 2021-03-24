@@ -1,5 +1,4 @@
 import { ServerRequest, Response } from "../dependencies/lib-compat.ts"
-import { readableStreamFromIterable, readerFromStreamReader } from "https://deno.land/std@0.90.0/io/streams.ts"
 import { ParsedUrl } from "../dependencies/lib-compat.ts"
 import { memory } from "./app-register.ts"
 import { SingleRecord } from "../dependencies/endpoint-record.ts"
@@ -27,9 +26,6 @@ export function app_discover(req: ServerRequest, pu: ParsedUrl): Response {
     const record = memory.get(common_name)
     if (record === undefined) { return { status: 404 } }
     if (record.size === 0) { record.delete(common_name); return { status: 404 } }
-
-    const dump = pu.decoded_query_map.get("dump")
-    if (dump === "1") { return { body: readerFromStreamReader(readableStreamFromIterable(record_json_iter_serialize(common_name, record.entries())).getReader()) } }
     
     const nth_text = pu.decoded_query_map.get("nth")
     if(nth_text !== undefined && /^[0-9]+/.test(nth_text) !== true) { return { status: 400, body: "Parameter &nth malformed, please supply only decimal characters (^[0-9]+$). Remember this parameter is optional." } }
@@ -41,29 +37,26 @@ export function app_discover(req: ServerRequest, pu: ParsedUrl): Response {
         const [host, single_record] = entires[index]
         if (host === undefined || single_record === undefined) { return { status: 500, body: "500.1 unexpected" } }
         if (single_record.ttl < Date.now()) { record.delete(host); continue }
-        else { return { status: 200, body: single_record_serialize(common_name, host, single_record) } } 
+        else { return { status: 200, body: single_record_serialize(common_name, single_record) } } 
     }
     return { status: 404 }
 }
 
-async function* record_json_iter_serialize(common_name: string, record_iter: IterableIterator<[string, SingleRecord]>) {
-    for(const record of record_iter) {
-        yield single_record_serialize(common_name, record[0], record[1])
-    }
-    return
-}
-
-function single_record_serialize(common_name: string, host: string, single_record: SingleRecord) {
+export function single_record_serialize(common_name: string, single_record: SingleRecord) {
     const encoder = new TextEncoder()
+    // must spell out every field because this json will interface with other serivces!
+    // so it should have relatively fixed shapes regardless of internal data representation.
     const json_string = JSON.stringify({
         common_name, 
-        protocol: single_record.protocol, 
-        host: host,
-        ttl: single_record.ttl, 
-        alive: single_record.health.alive, 
-        ping: single_record.health.ack_latency, 
-        last_checked: single_record.health.last_checked,
-        last_healthy: single_record.health.last_healthy,
+        protocol: single_record.protocol,
+        host: single_record.host,
+        ttl: single_record.ttl,
+        health: {
+            last_checked: single_record.health.last_checked,
+            last_healthy: single_record.health.last_healthy,
+            alive: single_record.health.alive,
+            ack_latency: single_record.health.ack_latency,
+        }
     }) + "\n"
     return encoder.encode(json_string)
 }

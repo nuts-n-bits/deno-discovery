@@ -1,10 +1,27 @@
-import { ServerRequest, Response } from "../dependencies/lib-compat.ts"
-import { ParsedUrl } from "../dependencies/lib-compat.ts"
+import { ServerRequest, Response, readableStreamFromIterable, readerFromStreamReader, ParsedUrl } from "../dependencies/lib-compat.ts"
 import { memory } from "./app-register.ts"
+import { single_record_serialize } from "./app-discover.ts"
+import { SingleRecord } from "../dependencies/endpoint-record.ts"
 
 export function app_dump(req: ServerRequest, pu: ParsedUrl): Response {
 
-    return {
-        body: JSON.stringify([...memory.entries()].map(([k, v]) => [k, [...v.entries()]]))
+    const common_name = pu.decoded_query_map.get("common-name")
+    if (common_name !== undefined) {
+        const record = memory.get(common_name)
+        if (record === undefined) { return { status: 404, body: "Not found" } }
+        return { body: readerFromStreamReader(readableStreamFromIterable(record_json_iter_serialize(common_name, record.entries())).getReader()) } 
     }
+
+    const space = pu.decoded_query_map.get("format") !== "0" ? 4 : undefined
+
+    return {
+        body: JSON.stringify([...memory.entries()].map(([k, v]) => [k, [...v.entries()]]), undefined, space)
+    }
+}
+
+async function* record_json_iter_serialize(common_name: string, record_iter: IterableIterator<[string, SingleRecord]>) {
+    for(const record of record_iter) {
+        yield single_record_serialize(common_name, record[1])
+    }
+    return
 }
