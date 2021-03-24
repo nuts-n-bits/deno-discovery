@@ -2,12 +2,13 @@ import { memory } from "../routed-apps/app-register.ts"
 import { async_sleep } from "./lib-compat.ts"
 import { SingleRecord } from "./endpoint-record.ts"
 import { on_cooldown } from "./cooldown.ts"
+import { log } from "../routed-apps/app-log.ts"
 
 export async function health_check(
     common_name: string, endpoint_record: SingleRecord
 ): Promise<{alive: true, start: number, end: number}|{alive: false, start: number}> {
     if(endpoint_record.protocol === "http") {
-        // console.log(`Starting health check for endpoint ((${common_name})) at ((${host}))...`)
+        log(`Starting health check for endpoint ((${common_name})) at ((${endpoint_record.host}))...`)
         const random_text = Math.random().toString()
         const abort_controller = new AbortController()
         const start = Date.now()
@@ -23,13 +24,13 @@ export async function health_check(
         }
         const end = Date.now()
         if(res !== undefined && res.status === 200 && res.headers.get("x-endpoint-common-name") === common_name) {
+            log("... And its healthy")
             return { alive: true, start, end }
-            // console.log("    ... And its healthy")
         }
         else {
             if(res === undefined) { abort_controller.abort() }  // if endpoint takes more than 5 secs to respond, kill the connection
+            log("    ... And its dead")
             return { alive: false, start }
-            // console.log("    ... And its dead")
         }
     }
     else {

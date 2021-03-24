@@ -1,4 +1,4 @@
-import { ServerRequest, Response, readableStreamFromIterable, readerFromStreamReader, ParsedUrl } from "../dependencies/lib-compat.ts"
+import { ServerRequest, Response, ParsedUrl } from "../dependencies/lib-compat.ts"
 import { memory } from "./app-register.ts"
 import { single_record_serialize } from "./app-discover.ts"
 import { SingleRecord } from "../dependencies/endpoint-record.ts"

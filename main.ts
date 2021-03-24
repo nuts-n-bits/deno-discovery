@@ -6,6 +6,7 @@ import { app_discover } from "./routed-apps/app-discover.ts"
 import { app_dump } from "./routed-apps/app-dump.ts"
 import { app_ack } from "./routed-apps/app-ack.ts"
 import { app_infer_host } from "./routed-apps/app-dev-infer-host.ts"
+import { app_log } from "./routed-apps/app-log.ts"
 
 export const common_name_header = ["X-Endpoint-Common-Name", "deno-discovery"]
 
@@ -18,6 +19,7 @@ app_map.set( "register"        , app_register   )
 app_map.set( "dump"            , app_dump       )
 app_map.set( "ack"             , app_ack        )
 app_map.set( "dev-infer-host"  , app_infer_host )
+app_map.set( "log"             , app_log        )
 
 while (true) {
     try {
