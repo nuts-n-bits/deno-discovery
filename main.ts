@@ -6,11 +6,13 @@ import { app_discover } from "./routed-apps/app-discover.ts"
 import { app_dump } from "./routed-apps/app-dump.ts"
 import { app_ack } from "./routed-apps/app-ack.ts"
 import { app_infer_host } from "./routed-apps/app-dev-infer-host.ts"
-import { app_log } from "./routed-apps/app-log.ts"
+import { app_log } from "./routed-apps/app-dev-log.ts"
+import { setup } from "./dependencies/setup.ts"
+setup()
 
 export const common_name_header = ["X-Endpoint-Common-Name", "deno-discovery"]
 
-const server = serve({ hostname: "0.0.0.0", port: 9999 })
+const server = serve({ hostname: "127.0.0.1", port: 9999 })
 console.log(`http server ${common_name_header[1]} is running. Come at http://localhost:9999/`)
 
 const app_map = new Map<string, (req: ServerRequest, pu: ParsedUrl) => Response|Promise<Response>>()
@@ -19,7 +21,7 @@ app_map.set( "register"        , app_register   )
 app_map.set( "dump"            , app_dump       )
 app_map.set( "ack"             , app_ack        )
 app_map.set( "dev-infer-host"  , app_infer_host )
-app_map.set( "log"             , app_log        )
+app_map.set( "dev-log"         , app_log        )
 
 while (true) {
     try {
@@ -53,7 +55,3 @@ while (true) {
         console.log("swallowed error", top_level_for_await_error)
     }
 }
-
-
-import * as _ from "./setup.ts"
-_._

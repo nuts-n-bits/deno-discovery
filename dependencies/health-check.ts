@@ -2,7 +2,7 @@ import { memory } from "../routed-apps/app-register.ts"
 import { async_sleep } from "./lib-compat.ts"
 import { SingleRecord } from "./endpoint-record.ts"
 import { on_cooldown } from "./cooldown.ts"
-import { log } from "../routed-apps/app-log.ts"
+import { log } from "../routed-apps/app-dev-log.ts"
 
 export async function health_check(
     common_name: string, endpoint_record: SingleRecord

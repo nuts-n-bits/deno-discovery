@@ -9,13 +9,15 @@ export function log(line: string, timestamp = Date.now()) {
 }
 
 export function app_log(req: ServerRequest, pu: ParsedUrl): Response {
+    const log_entries = [...logs_queue.entries()].map(([k,v]) => v)
+    const timespan = log_entries.length > 0 ? log_entries[log_entries.length-1].time - log_entries[0].time : 0
     return {
         status: 200,
-        body: `<html><body><h2>Logs (${logs_queue.size()})</h2>
+        body: `<html><body><h2>Logs (${logs_queue.size()} items in ${(timespan/1000).toFixed(0)} seconds)</h2>
             <style>.time {margin-right: 1em; opacity: 0.5; font-size: 80%}</style>
             <table>
                 <tr><th>Time</th><th>Content</th></tr>
-                ${[...logs_queue.entries()].map(([k,v]) => `<tr><td class="time">${san(new Date(v.time).toISOString())}</td><td>${san(v.content)}</td></tr>`).join("")}
+                ${log_entries.map(log => `<tr><td class="time">${san(new Date(log.time).toISOString())}</td><td>${san(log.content)}</td></tr>`).join("")}
             </table>
             </body></html>`
     }

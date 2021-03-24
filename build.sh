@@ -1,1 +1,1 @@
-deno bundle discovery-main.ts deno-discovery.js
+deno bundle main.ts deno-discovery.js
