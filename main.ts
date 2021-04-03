@@ -1,4 +1,4 @@
-import { serve, ServerRequest, Response } from "./dependencies/lib-compat.ts"
+import { serve, ServerRequest, Response, RoutingTable } from "./dependencies/lib-compat.ts"
 import { parse_url, ParsedUrl } from "./dependencies/lib-compat.ts"
 import { app_404 } from "./routed-apps/app-404.ts"
 import { app_register } from "./routed-apps/app-register.ts"
@@ -7,21 +7,18 @@ import { app_dump } from "./routed-apps/app-dump.ts"
 import { app_ack } from "./routed-apps/app-ack.ts"
 import { app_infer_host } from "./routed-apps/app-dev-infer-host.ts"
 import { app_log } from "./routed-apps/app-dev-log.ts"
-import { setup } from "./dependencies/setup.ts"
-setup()
 
 export const common_name_header = ["X-Endpoint-Common-Name", "deno-discovery"]
-
 const server = serve({ hostname: "127.0.0.1", port: 9999 })
 console.log(`http server ${common_name_header[1]} is running. Come at http://localhost:9999/`)
 
-const app_map = new Map<string, (req: ServerRequest, pu: ParsedUrl) => Response|Promise<Response>>()
-app_map.set( "discover"        , app_discover   )
-app_map.set( "register"        , app_register   )
-app_map.set( "dump"            , app_dump       )
-app_map.set( "ack"             , app_ack        )
-app_map.set( "dev-infer-host"  , app_infer_host )
-app_map.set( "dev-log"         , app_log        )
+const app_map = new RoutingTable<string, (req: ServerRequest, pu: ParsedUrl) => Response|Promise<Response>>(app_404)
+app_map.register( app_discover   , "discover"       )
+app_map.register( app_register   , "register"       )
+app_map.register( app_dump       , "dump"           )
+app_map.register( app_ack        , "ack"            )
+app_map.register( app_infer_host  , "dev-infer-host" )
+app_map.register( app_log        , "dev-log"        )
 
 while (true) {
     try {
@@ -34,7 +31,7 @@ while (true) {
                 await request.respond({status: 400, body: "HTTP 400, malformed url", headers: new Headers([common_name_header])})
                 break
             }
-            const app = app_map.get(parsed_url.decoded_fragments[0]) || app_404
+            const app = app_map.lookup(parsed_url.decoded_fragments).val
             try {
                 const response = await app(request, parsed_url)
                 if (response.headers) { response.headers.set(common_name_header[0], common_name_header[1]) }

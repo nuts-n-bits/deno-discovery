@@ -1,5 +1,5 @@
-import { ServerRequest, Response, ParsedUrl, QuickQueue, sanitize_html as san } from "../dependencies/lib-compat.ts"
-const logs_queue = new QuickQueue<{time: number, content: string}>()
+import { ServerRequest, Response, ParsedUrl, sanitize_html as san } from "../dependencies/lib-compat.ts"
+import { logs_queue } from "../dependencies/setup.ts"
 
 export function log(line: string, timestamp = Date.now()) {
     logs_queue.push({time: timestamp, content: line})

@@ -1,6 +1,5 @@
-import { ServerRequest, Response } from "../dependencies/lib-compat.ts"
-import { ParsedUrl } from "../dependencies/lib-compat.ts"
-import { memory } from "./app-register.ts"
+import { ServerRequest, Response, ParsedUrl } from "../dependencies/lib-compat.ts"
+import { memory } from "../dependencies/setup.ts"
 import { SingleRecord } from "../dependencies/endpoint-record.ts"
 /* 
 

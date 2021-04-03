@@ -1,4 +1,4 @@
-import { memory } from "../routed-apps/app-register.ts"
+import { memory } from "../dependencies/setup.ts"
 import { async_sleep } from "./lib-compat.ts"
 import { SingleRecord } from "./endpoint-record.ts"
 import { on_cooldown } from "./cooldown.ts"
