@@ -1,9 +1,9 @@
-import { ServerRequest, Response, ParsedUrl } from "../dependencies/lib-compat.ts"
+import { ServerRequest, Response, ParsedUrl, DecodedQueryMap } from "../dependencies/lib-compat.ts"
 import { memory } from "../dependencies/setup.ts"
 import { single_record_serialize } from "./app-discover.ts"
 import { SingleRecord } from "../dependencies/endpoint-record.ts"
 
-export function app_dump(req: ServerRequest, pu: ParsedUrl): Response {
+export function app_dump(req: ServerRequest, pu: ParsedUrl & DecodedQueryMap): Response {
     
     const space = pu.decoded_query_map.get("format") !== "0" ? 4 : undefined
 

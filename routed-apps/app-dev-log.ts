@@ -1,4 +1,4 @@
-import { ServerRequest, Response, ParsedUrl, sanitize_html as san } from "../dependencies/lib-compat.ts"
+import { ServerRequest, Response, ParsedUrl, DecodedQueryMap, sanitize_html as san } from "../dependencies/lib-compat.ts"
 import { logs_queue } from "../dependencies/setup.ts"
 
 export function log(line: string, timestamp = Date.now()) {
@@ -8,7 +8,7 @@ export function log(line: string, timestamp = Date.now()) {
     }
 }
 
-export function app_log(req: ServerRequest, pu: ParsedUrl): Response {
+export function app_log(req: ServerRequest, pu: ParsedUrl & DecodedQueryMap): Response {
     const log_entries = [...logs_queue.entries()].map(([k,v]) => v)
     const timespan = log_entries.length > 0 ? log_entries[log_entries.length-1].time - log_entries[0].time : 0
     return {

@@ -1,4 +1,4 @@
-import { ServerRequest, Response, ParsedUrl } from "../dependencies/lib-compat.ts"
+import { ServerRequest, Response, ParsedUrl, DecodedQueryMap } from "../dependencies/lib-compat.ts"
 import { memory } from "../dependencies/setup.ts"
 import { SingleRecord } from "../dependencies/endpoint-record.ts"
 /* 
@@ -17,7 +17,7 @@ import { SingleRecord } from "../dependencies/endpoint-record.ts"
 
 */
 
-export function app_discover(req: ServerRequest, pu: ParsedUrl): Response {
+export function app_discover(req: ServerRequest, pu: ParsedUrl & DecodedQueryMap): Response {
 
     const common_name = pu.decoded_query_map.get("common-name")
     if(common_name === undefined) { return { status: 400, body: "No &common-name parameter (required)" } }

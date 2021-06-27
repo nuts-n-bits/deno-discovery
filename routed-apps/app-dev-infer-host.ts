@@ -1,7 +1,7 @@
 import { ServerRequest, Response } from "../dependencies/lib-compat.ts"
-import { ParsedUrl } from "../dependencies/lib-compat.ts"
+import { ParsedUrl, DecodedQueryMap } from "../dependencies/lib-compat.ts"
 
-export function app_infer_host(req: ServerRequest, pu: ParsedUrl): Response {
+export function app_infer_host(req: ServerRequest, pu: ParsedUrl & DecodedQueryMap): Response {
 
     const addr = req.conn.remoteAddr
     if (addr.transport === "tcp") {
